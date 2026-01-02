@@ -11,7 +11,6 @@ const multer=require("multer");
 const {storage}=require("../cloudConfig.js");
 const upload=multer({ storage });
 
-
 router
     .route("/")
     .get(wrapAsync(listingController.index))
@@ -24,7 +23,6 @@ router
 
 //create new listing route
 router.get("/new", isLoggedIn,listingController.renderNewForm);
-
 
 router
     .route("/:id")
@@ -42,9 +40,6 @@ router
         wrapAsync(listingController.destroyListing)
     );
 
-
-
-   
 //edit route to edit a listing
 router.get("/:id/edit", 
     isLoggedIn,
