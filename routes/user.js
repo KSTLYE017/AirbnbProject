@@ -3,7 +3,7 @@ const router=express.Router();
 const User=require("../models/user.js");
 const wrapAsync=require("../utils/wrapAsync");
 const passport=require("passport");
-const {saveRedirectUrl}=require("../middleware");
+const {saveRedirectUrl}=require("../middleware.server.js");
 const userController=require("../controllers/users.js")
 
 router
