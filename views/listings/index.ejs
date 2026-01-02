@@ -1,5 +1,7 @@
-<% layout("/layouts/boilerplate") %>
-
+<!-- <% layout("/layouts/boilerplate") %>
+<% if (alllistings.length === 0) { %>
+  <p class="text-center mt-5">No listings found. Create your first listing!</p>
+<% } %>
     <style>
         #filters {
            display: flex;
@@ -113,6 +115,7 @@
     <% } %>
 </div>
 
+
  <script>
     let taxSwitch=document.getElementById("switchCheckDefault");
     taxSwitch.addEventListener("click",()=>{
@@ -126,4 +129,77 @@
       }
     });
  </script>
+ -->
+<% layout("/layouts/boilerplate") %>
 
+<% if (alllistings.length === 0) { %>
+  <p class="text-center mt-5">
+    No listings found. Create your first listing!
+  </p>
+<% } else { %>
+
+<style>
+  #filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter {
+    text-align: center;
+    margin-right: 2.5rem;
+    margin-top: 1.5rem;
+    opacity: 0.7;
+    font-size: 1.4rem;
+  }
+  .filter:hover {
+    opacity: 1;
+    cursor: pointer;
+  }
+  .filter p {
+    font-size: 0.8rem;
+  }
+  .tax-info {
+    display: none;
+  }
+  .tax-toggle {
+    border: 1px solid black;
+    border-radius: 0.7rem;
+    height: 2rem;
+    padding: 0.2rem 0.5rem;
+    margin-left: auto;
+  }
+</style>
+
+<div id="filters">
+  <!-- filters remain same -->
+</div>
+
+<div class="row row-cols-lg-4 row-cols-md-2 row-cols-sm-1 mt-3">
+  <% for (let listing of alllistings) { %>
+    <a href="/listings/<%= listing._id %>" class="listing-link">
+      <div class="card col listing-card">
+        <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height: 20rem">
+        <div class="card-img-overlay"></div>
+        <div class="card-body">
+          <p class="card-text">
+            <b><%= listing.title %></b><br>
+            &#8377; <%= listing.price.toLocaleString("en-IN") %> /night
+            <i class="tax-info">&nbsp;,&nbsp; +18% GST</i>
+          </p>
+        </div>
+      </div>
+    </a>
+  <% } %>
+</div>
+
+<script>
+  let taxSwitch = document.getElementById("switchCheckDefault");
+  taxSwitch.addEventListener("click", () => {
+    let taxInfo = document.getElementsByClassName("tax-info");
+    for (let info of taxInfo) {
+      info.style.display = taxSwitch.checked ? "inline" : "none";
+    }
+  });
+</script>
+
+<% } %>
