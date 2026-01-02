@@ -1,6 +1,7 @@
 {
   "engines": {
-    "node": "22.19.0"
+    "node": "22",
+    "npm": ">=10"
   },
   "name": "majorproject",
   "version": "1.0.0",
@@ -13,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cloudinary": "^1.41.0",
+    "cloudinary": "^2.8.0",
     "connect-flash": "^0.1.1",
     "connect-mongo": "^6.0.0",
     "dotenv": "^17.2.3",
@@ -25,7 +26,6 @@
     "method-override": "^3.0.0",
     "mongoose": "^9.1.1",
     "multer": "^2.0.2",
-    "multer-storage-cloudinary": "^4.0.0",
     "node-fetch": "^3.3.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
