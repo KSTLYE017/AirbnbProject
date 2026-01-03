@@ -40,7 +40,7 @@ app.set("views",path.join(__dirname,"views"));
 app.use(express.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
 app.engine("ejs",ejsMate);
-app.use(express.static(path.join(__dirname,"/public")));
+
 
 
 const store=MongoStore.create({
@@ -100,6 +100,7 @@ app.use("/listings",listingsRouter);
 app.use("/listings/:id/reviews",reviewsRouter);
 app.use("/",userRouter);
 
+app.use(express.static(path.join(__dirname,"/public")));
 
 app.use((req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
