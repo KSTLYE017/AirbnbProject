@@ -17,6 +17,7 @@ const listingSchema=new Schema({
     image:{
         url:String,
         filename: String,
+
     },
     country:String,
     reviews: [
