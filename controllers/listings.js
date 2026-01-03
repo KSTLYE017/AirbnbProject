@@ -139,11 +139,7 @@
 
 const Listing = require("../models/listing");
 const { uploadToCloudinary } = require("../cloudConfig");
-
-// node-fetch (keep as-is)
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
+const {geocodeLocation}=require("../utils/geocode");
 /* =========================
    INDEX
 ========================= */
@@ -187,50 +183,48 @@ module.exports.showListing = async (req, res) => {
 /* =========================
    CREATE
 ========================= */
-module.exports.createListing = async (req, res) => {
-  // 1️⃣ Upload image to Cloudinary
-  let cloudinaryResult = null;
-  if (req.file) {
-    cloudinaryResult = await uploadToCloudinary(req.file.buffer);
-  }
+module.exports.createListing = async (req, res, next) => {
+  try {
+    // 1️⃣ Upload image to Cloudinary
+    let cloudinaryResult = null;
+    if (req.file) {
+      cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+    }
 
-  // 2️⃣ Geocode location
-  const location = req.body.listing.Location;
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`
-  );
-  const data = await response.json();
+    // 2️⃣ Geocode location (BACKEND SAFE)
+    const location = req.body.listing.Location;
+    const coords = await geocodeLocation(location);
 
-  if (data.length === 0) {
-    req.flash("error", "Invalid location");
-    return res.redirect("/listings/new");
-  }
+    if (!coords) {
+      req.flash("error", "Invalid location");
+      return res.redirect("/listings/new");
+    }
 
-  const lat = parseFloat(data[0].lat);
-  const lng = parseFloat(data[0].lon);
+    // 3️⃣ Create listing
+    const newListing = new Listing(req.body.listing);
 
-  // 3️⃣ Create listing
-  const newListing = new Listing(req.body.listing);
-
-  newListing.geometry = {
-    type: "Point",
-    coordinates: [lng, lat],
-  };
-
-  newListing.owner = req.user._id;
-
-  // 4️⃣ Save Cloudinary image
-  if (cloudinaryResult) {
-    newListing.image = {
-      url: cloudinaryResult.secure_url,
-      filename: cloudinaryResult.public_id,
+    newListing.geometry = {
+      type: "Point",
+      coordinates: [coords.lng, coords.lat],
     };
+
+    newListing.owner = req.user._id;
+
+    // 4️⃣ Save Cloudinary image
+    if (cloudinaryResult) {
+      newListing.image = {
+        url: cloudinaryResult.secure_url,
+        filename: cloudinaryResult.public_id,
+      };
+    }
+
+    await newListing.save();
+
+    req.flash("success", "Successfully created a new listing!");
+    res.redirect("/listings");
+  } catch (err) {
+    next(err);
   }
-
-  await newListing.save();
-
-  req.flash("success", "Successfully created a new listing!");
-  res.redirect("/listings");
 };
 
 /* =========================
@@ -254,57 +248,50 @@ module.exports.renderEditForm = async (req, res) => {
 /* =========================
    UPDATE
 ========================= */
-module.exports.updateListing = async (req, res) => {
-  const { id } = req.params;
-  const listing = await Listing.findById(id);
+module.exports.updateListing = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const listing = await Listing.findById(id);
 
-  if (!listing) {
-    req.flash("error", "Listing not found!");
-    return res.redirect("/listings");
-  }
-
-  // Update fields
-  listing.title = req.body.listing.title;
-  listing.price = req.body.listing.price;
-  listing.description = req.body.listing.description;
-
-  // Update location
-  if (
-    req.body.listing.Location &&
-    req.body.listing.Location !== listing.Location
-  ) {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        req.body.listing.Location
-      )}`
-    );
-    const data = await response.json();
-
-    if (data.length > 0) {
-      listing.geometry = {
-        type: "Point",
-        coordinates: [
-          parseFloat(data[0].lon),
-          parseFloat(data[0].lat),
-        ],
-      };
-      listing.Location = req.body.listing.Location;
+    if (!listing) {
+      req.flash("error", "Listing not found!");
+      return res.redirect("/listings");
     }
+
+    listing.title = req.body.listing.title;
+    listing.price = req.body.listing.price;
+    listing.description = req.body.listing.description;
+
+    if (
+      req.body.listing.Location &&
+      req.body.listing.Location !== listing.Location
+    ) {
+      const coords = await geocodeLocation(req.body.listing.Location);
+
+      if (coords) {
+        listing.geometry = {
+          type: "Point",
+          coordinates: [coords.lng, coords.lat],
+        };
+        listing.Location = req.body.listing.Location;
+      }
+    }
+
+    if (req.file) {
+      const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+      listing.image = {
+        url: cloudinaryResult.secure_url,
+        filename: cloudinaryResult.public_id,
+      };
+    }
+
+    await listing.save();
+
+    req.flash("success", "Successfully updated the listing!");
+    res.redirect(`/listings/${id}`);
+  } catch (err) {
+    next(err);
   }
-
-  // Update image if new file uploaded
-  if (req.file) {
-    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
-    listing.image = {
-      url: cloudinaryResult.secure_url,
-      filename: cloudinaryResult.public_id,
-    };
-  }
-
-  await listing.save();
-
-  req.flash("success", "Successfully updated the listing!");
-  res.redirect(`/listings/${id}`);
 };
 
 /* =========================

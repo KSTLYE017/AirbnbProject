@@ -1,0 +1,29 @@
+ #filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+.filter {
+    text-align: center;
+    margin-right: 2.5rem;
+    margin-top: 1.5rem;
+    opacity: 0.7;
+    font-size: 1.4rem;
+  }
+.filter:hover {
+    opacity: 1;
+    cursor: pointer;
+  }
+.filter p {
+    font-size: 0.8rem;
+  }
+.tax-info {
+    display: none;
+  }
+.tax-toggle {
+    border: 1px solid black;
+    border-radius: 0.7rem;
+    height: 2rem;
+    padding: 0.2rem 0.5rem;
+    margin-left: auto;
+  }
